@@ -1,6 +1,4 @@
-"use client"
-
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useForm, useFieldArray, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -26,7 +24,6 @@ type FormValues = z.infer<typeof formSchema>
 
 export default function DynamicForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [formSuccess, setFormSuccess] = useState<string | null>(null)
 
   // Initialize react-hook-form with zod resolver
   const {
@@ -50,14 +47,12 @@ export default function DynamicForm() {
   // Handle form submission
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true)
-    setFormSuccess(null)
 
     try {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000))
 
       console.log("Form submitted successfully:", data)
-      setFormSuccess("Form submitted successfully!")
       toast.success("Form submitted successfully!", {
         duration: 4000,
       })

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useInfiniteQuery } from "@tanstack/react-query"
 import { FixedSizeList as List } from "react-window"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
