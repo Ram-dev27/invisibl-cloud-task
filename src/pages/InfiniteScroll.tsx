@@ -2,7 +2,7 @@ import { useInfiniteQuery } from "@tanstack/react-query"
 import { FixedSizeList as List } from "react-window"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useRef, useEffect } from "react"
+import { useRef, useCallback } from "react"
 import { toast } from "sonner"
 
 interface Post {
@@ -34,6 +34,11 @@ const fetchPosts = async ({ pageParam = 1 }): Promise<PostsResponse> => {
   }
 }
 
+// Constants for list configuration
+const ITEM_HEIGHT = 100;
+const ITEM_GAP = 8; // 8px gap
+const TOTAL_ITEM_HEIGHT = ITEM_HEIGHT + ITEM_GAP;
+
 export default function InfiniteScroll() {
   const listRef = useRef<List>(null)
 
@@ -54,30 +59,35 @@ export default function InfiniteScroll() {
   // Flatten all pages of posts into a single array
   const allPosts = data?.pages.flatMap((page) => page.posts) ?? []
 
-  // Handle scroll to bottom
-  useEffect(() => {
-    const handleScroll = () => {
+  // Handle scroll to bottom of the List's scroll container
+  const handleListScroll = useCallback(
+    ({ scrollOffset, scrollHeight, clientHeight }: { scrollOffset: number; scrollHeight: number; clientHeight: number }) => {
       if (
-        window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100 &&
         hasNextPage &&
-        !isFetchingNextPage
+        !isFetchingNextPage &&
+        scrollOffset + clientHeight >= scrollHeight - 50 // 50px from bottom
       ) {
         fetchNextPage()
       }
-    }
-
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage])
+    },
+    [fetchNextPage, hasNextPage, isFetchingNextPage]
+  )
 
   // Row renderer for virtualized list
   const Row = ({ index, style }: { index: number; style: React.CSSProperties }) => {
     const post = allPosts[index]
     if (!post) return null
 
+    // Adjust the style to include the gap
+    const adjustedStyle = {
+      ...style,
+      top: `${Number(style.top) + index * ITEM_GAP}px`,
+      height: ITEM_HEIGHT,
+    }
+
     return (
-      <div style={style} className="px-4">
-        <div className="p-4 border rounded-lg hover:bg-accent/50 transition-colors">
+      <div style={adjustedStyle} className="px-4">
+        <div className="p-4 border rounded-lg hover:bg-accent/50 transition-colors h-full">
           <h3 className="font-semibold line-clamp-1">{post.title}</h3>
           <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{post.body}</p>
         </div>
@@ -114,13 +124,26 @@ export default function InfiniteScroll() {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         ) : (
-          <div className="h-[480px]">
+          <div className="h-[450px] overflow-auto">
             <List
               ref={listRef}
-              height={480}
+              height={450}
               itemCount={allPosts.length}
-              itemSize={100}
+              itemSize={TOTAL_ITEM_HEIGHT}
               width="100%"
+              overscanCount={5} // Keep 5 items rendered above and below the visible area
+              className="scrollbar-thin scrollbar-thumb-primary scrollbar-track-transparent"
+              onScroll={({ scrollOffset }) => {
+                if (listRef.current) {
+                  const outer = (listRef.current as any)._outerRef as HTMLDivElement;
+                  const scrollHeight = outer.scrollHeight;
+                  const clientHeight = outer.clientHeight;
+                  // Trigger fetch earlier when scrolling down
+                  if (scrollOffset + clientHeight >= scrollHeight - 200) {
+                    handleListScroll({ scrollOffset, scrollHeight, clientHeight });
+                  }
+                }
+              }}
             >
               {Row}
             </List>
