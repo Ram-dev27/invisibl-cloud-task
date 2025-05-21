@@ -47,7 +47,7 @@ A modern React application showcasing dynamic form fields and virtualized infini
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/Ram-dev27/invisibl-cloud-task.git
 cd dynamic-fields
 ```
 
@@ -107,4 +107,10 @@ The infinite scroll component demonstrates:
 - Automatic loading of more data on scroll
 - Loading states and error handling
 - Responsive design with proper spacing
+
+### Image
+![image](https://github.com/user-attachments/assets/01a5562d-9d84-4ac1-be09-d3f061dc9e79)
+
+## Mobile screen
+![image](https://github.com/user-attachments/assets/5dc9f919-ada8-4d13-b50e-50d388ccb9af)
 
